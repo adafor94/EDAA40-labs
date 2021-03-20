@@ -34,22 +34,22 @@
 
 (declare cartesian)
 
-;; (defn cartesian
-;;   "computes Cartesian product of A and B"
-;;   
-;;   [A B]
-;; 
-;;   ;; uses "set", "for" 
-;; )
-;;
-;; (test? "cartesian test 1" (cartesian #{1 2} #{3 4 5}) #{[1 3] [1 4] [1 5] [2 3] [2 4] [2 5]})
+(defn cartesian
+  "computes Cartesian product of A and B"
+  
+  [A B]
+    (set (for [x A y B] [x,y]))
+  ;; uses "set", "for" 
+)
+
+(test? "cartesian test 1" (cartesian #{1 2} #{3 4 5}) #{[1 3] [1 4] [1 5] [2 3] [2 4] [2 5]})
 
 
 (defn powerset 
   "computes the powerset of S"
 
   [S]
-  
+
   (if (empty? S) 
     '#{#{}}
     (let [a (first S) p (powerset (next S))]
@@ -69,38 +69,40 @@
   "computes the domain of a relation"
 
   [R]
-  
+
   (set (for [r R] (first r)))
 )
 
 (declare rng)
 
-;; (defn rng
-;;   "computes the range of a relation"
-;;   
-;;   [R]
-;; 
-;;   ;; uses "set", "for", "second"
-;; )
-;;
-;; (test? "rng" (rng #{[1 :a] [2 :b] [1 :c] [3 :a]}) #{:a :b :c})
+(defn rng
+  "computes the range of a relation"
+  
+  [R]
+
+  (set (for [r R] (second r)))
+  ;; uses "set", "for", "second"
+)
+
+(test? "rng" (rng #{[1 :a] [2 :b] [1 :c] [3 :a]}) #{:a :b :c})
 
 
 (declare image-of)
 
-;; (defn image-of 
-;;   "computes the image of the element x under R"
-;;   
-;;   [R x] 
-;; 
-;;   ;; uses "set", "for" with :when, "first", "second"
-;; )
-;; 
-;; (test? "image-of 1" (image-of #{[1 :a] [2 :b] [1 :c] [3 :a]} 1) #{:a :c})
-;; 
-;; (test? "image-of 2" (image-of #{[1 :a] [2 :b] [1 :c] [3 :a]} 3) #{:a})
-;; 
-;; (test? "image-of 3" (image-of #{[1 :a] [2 :b] [1 :c] [3 :a]} 4) #{})
+(defn image-of 
+  "computes the image of the element x under R"
+  
+  [R x] 
+
+  (set (for [r R :when (== x (first r))] (second r)))
+  ;; uses "set", "for" with :when, "first", "second"
+)
+
+(test? "image-of 1" (image-of #{[1 :a] [2 :b] [1 :c] [3 :a]} 1) #{:a :c})
+
+(test? "image-of 2" (image-of #{[1 :a] [2 :b] [1 :c] [3 :a]} 3) #{:a})
+
+(test? "image-of 3" (image-of #{[1 :a] [2 :b] [1 :c] [3 :a]} 4) #{})
 
 
 (defn image-of-set 
@@ -133,15 +135,15 @@
 
 (declare inverse)
 
-;; (defn inverse 
-;;   "computes the inverse (aka converse) of a relation"
-;; 
-;;   [R]
-;; 
-;;   ;; uses "set", "for"
-;; )
-;; 
-;; (test? "inverse" (inverse #{[1 :a] [2 :b] [1 :c] [3 :a]}) #{[:a 1] [:b 2] [:c 1] [:a 3]})
+(defn inverse 
+  "computes the inverse (aka converse) of a relation"
+
+  [R]
+  (set (for [r R] [(second r) (first r)]))
+  ;; uses "set", "for"
+)
+
+(test? "inverse" (inverse #{[1 :a] [2 :b] [1 :c] [3 :a]}) #{[:a 1] [:b 2] [:c 1] [:a 3]})
 
 
 
