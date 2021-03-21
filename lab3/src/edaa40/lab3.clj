@@ -75,38 +75,37 @@
 
 (declare threeinarow)
 
-;; (defn- threeinarow 
-;;   "determines whether the specified line (a vector of three indices) is 
-;;    fully occupied by player p in the board b"
-;; 
-;;   [p b ln]
-;; 
-;;
-;;  hint: this is a very simple one; it becomes even simpler when you remember that 
-;;        the = operator can take any number of arguments, and that lines and the board
-;;        are vectors, and that if v is a vector and n is a number, then (v n) is the n-th
-;;        element of the vector (starting from 0, as usual)
-;; )
-;; 
-;; 
-;; (test? "threeinarow 1" (threeinarow X [_ _ _ _ _ _ X X X] (winning-lines 2)))
-;; (test? "threeinarow 2" (not (threeinarow X [_ _ _ _ _ _ X X X]  (winning-lines 1))))
-;; (test? "threeinarow 3" (not (threeinarow O [_ _ _ _ _ _ X X X]  (winning-lines 2))))
-;; 
+(defn- threeinarow 
+  "determines whether the specified line (a vector of three indices) is 
+   fully occupied by player p in the board b"
+
+  [p b ln]
+  ( = p (b (ln 0)) (b (ln 1)) (b (ln 2))) ;checks if board position ln(0), ln(1), ln(2) all equal p
+
+;  hint: this is a very simple one; it becomes even simpler when you remember that 
+;        the = operator can take any number of arguments, and that lines and the board
+;        are vectors, and that if v is a vector and n is a number, then (v n) is the n-th
+;        element of the vector (starting from 0, as usual)
+)
+
+(test? "threeinarow 1" (threeinarow X [_ _ _ _ _ _ X X X] (winning-lines 2)))
+(test? "threeinarow 2" (not (threeinarow X [_ _ _ _ _ _ X X X]  (winning-lines 1))))
+(test? "threeinarow 3" (not (threeinarow O [_ _ _ _ _ _ X X X]  (winning-lines 2))))
+
 
 (declare win?)
 
-;; (defn win?
-;;   "determines whether player p has fully occupied at least one of
-;;    the lines in the variable winning-lines"
-;; 
-;;   [p b]
-;; 
-;;   hint: of course, this one uses threeinarow and winning-lines. Also, "some". 
-;; )
-;; 
-;; (test? "win? 1" (win? X [X _ _ X _ _ X _ _]))
-;; (test? "win? 2" (not (win? O [X _ _ X _ _ X _ _])))
+(defn win?
+  "determines whether player p has fully occupied at least one of
+   the lines in the variable winning-lines"
+
+  [p b]
+  (some #(threeinarow p b %) winning-lines) 
+  ;hint: of course, this one uses threeinarow and winning-lines. Also, "some". 
+)
+
+(test? "win? 1" (win? X [X _ _ X _ _ X _ _]))
+(test? "win? 2" (not (win? O [X _ _ X _ _ X _ _])))
 
 (defn opponent 
   "computes the opponent of the specified player"
@@ -121,26 +120,30 @@
 
 (declare moves)
 
-;; (defn moves
-;;   "computes all possible moves player p can make on board b;
-;;    it returns a list of all possible new boards after p made a move,
-;;    or an empty list, if p cannot make any move"
-;; 
-;;   [p b]
-;;
-;;  hint: uses map, assoc, filter, and range.
-;;        "assoc" is useful to "replace", in a vector such as the one representing the board,
-;;        one element with another. (assoc b n p) returns a vector that is like b, except that 
-;;        p is the next value at index n.
-;;        "filter" is used to filter out those boards whose n-th field is open, i.e. has the value _.
-;;
-;;        All iteration happens in map and filter --- if you start writing loops, try to find a solution
-;;        using the functions listed above.
-;; )
-;; 
-;; (test? "moves 1" (count (moves X B0)) 9)
-;; (test? "moves 2" (count (moves X B1)) 7)
-;; (test? "moves 3" (count (moves X B2)) 7)
+(defn moves
+  "computes all possible moves player p can make on board b;
+   it returns a list of all possible new boards after p made a move,
+   or an empty list, if p cannot make any move"
+
+  [p b]
+  (map 
+    #(assoc b % p)                  ; make the move, that is change the empty board square to p
+    (filter #(= _ (b %)) (range 9)) ; filter indexes where the corresponding board square is empty  
+    )
+  
+;  hint: uses map, assoc, filter, and range.
+;        "assoc" is useful to "replace", in a vector such as the one representing the board,
+;        one element with another. (assoc b n p) returns a vector that is like b, except that 
+;        p is the next value at index n.
+;        "filter" is used to filter out those boards whose n-th field is open, i.e. has the value _.
+
+;        All iteration happens in map and filter --- if you start writing loops, try to find a solution
+;        using the functions listed above.
+)
+
+(test? "moves 1" (count (moves X B0)) 9)
+(test? "moves 2" (count (moves X B1)) 7)
+(test? "moves 3" (count (moves X B2)) 7)
 
 ;; A "game tree" is a map that has the following structure:
 ;; {:player <player> :board <some board> :win <winner> :children <list of game trees>}
