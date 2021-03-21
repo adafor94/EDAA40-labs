@@ -27,7 +27,6 @@
   )
 )
 
-
 ;;
 ;;	SETS
 ;;
@@ -38,7 +37,7 @@
   "computes Cartesian product of A and B"
   
   [A B]
-    (set (for [x A y B] [x,y]))
+    (set (for [x A y B] [x,y])) ; for x in A and y in B produce [x,y]
   ;; uses "set", "for" 
 )
 
@@ -70,7 +69,7 @@
 
   [R]
 
-  (set (for [r R] (first r)))
+  (set (for [r R] (first r)))   ; set of all a in (a,b)
 )
 
 (declare rng)
@@ -80,7 +79,7 @@
   
   [R]
 
-  (set (for [r R] (second r)))
+  (set (for [r R] (second r)))  ; set of all b in (a,b)
   ;; uses "set", "for", "second"
 )
 
@@ -94,7 +93,7 @@
   
   [R x] 
 
-  (set (for [r R :when (== x (first r))] (second r)))
+  (set (for [r R :when (== x (first r))] (second r)))   ;for every (a,b) in R, if a == x, save b to set.    
   ;; uses "set", "for" with :when, "first", "second"
 )
 
@@ -139,7 +138,7 @@
   "computes the inverse (aka converse) of a relation"
 
   [R]
-  (set (for [r R] [(second r) (first r)]))
+  (set (for [r R] [(second r) (first r)]))    ; simply flips every (a,b) in R to (b,a)
   ;; uses "set", "for"
 )
 
@@ -159,19 +158,20 @@
 
 (declare reflexive?)
 
-;; (defn reflexive?
-;;   "tests whether R is reflexive over A"
-;; 
-;;   [R A]
-;; 
-;;   ;; uses "every?", "contains?"
-;; )
-;; 
-;; (test? "reflexive 1" (reflexive? #{[1 1] [1 2] [1 3] [2 2] [2 3] [3 3]} #{1 2 3}) true)
-;; 
-;; (test? "reflexive 2" (reflexive? #{[1 1] [1 2] [1 3] [2 2] [2 3] [3 3]} #{1 2 3 4}) false)
-;; 
-;; (test? "reflexive 3" (reflexive? #{[1 1] [1 2] [1 3] [2 3] [3 3]} #{1 2 3}) false)
+(defn reflexive?
+  "tests whether R is reflexive over A"
+
+  [R A]
+
+  (every? #(contains? R [% %]) A)   ; for every a in A, check if R contains the relation (a,a)
+  ;; uses "every?", "contains?"
+)
+
+(test? "reflexive 1" (reflexive? #{[1 1] [1 2] [1 3] [2 2] [2 3] [3 3]} #{1 2 3}) true)
+
+(test? "reflexive 2" (reflexive? #{[1 1] [1 2] [1 3] [2 2] [2 3] [3 3]} #{1 2 3 4}) false)
+
+(test? "reflexive 3" (reflexive? #{[1 1] [1 2] [1 3] [2 3] [3 3]} #{1 2 3}) false)
 
 
 
@@ -185,37 +185,43 @@
 
 (declare symmetric?)
 
-;; (defn symmetric?
-;;   "tests whether R is symmetric"
-;; 
-;;   [R]
-;; 
-;;   ;; uses "every?", "contains?", "inv1"
-;; )
-;;
-;; (test? "symmetric 1" (symmetric? #{[1 1] [1 2] [1 3] [2 2] [2 3] [3 3]}) false)
-;; 
-;; (test? "symmetric 2" (symmetric? #{[1 1] [1 3] [2 2] [3 1]}) true)
+(defn symmetric?
+  "tests whether R is symmetric"
+
+  [R]
+
+  (every? #(contains? R (inv1 %)) R)      ;for every (a,b) in R, check if R contains (b,a)
+  ;; uses "every?", "contains?", "inv1"
+)
+
+(test? "symmetric 1" (symmetric? #{[1 1] [1 2] [1 3] [2 2] [2 3] [3 3]}) false)
+
+(test? "symmetric 2" (symmetric? #{[1 1] [1 3] [2 2] [3 1]}) true)
 
 
 (declare transitive?)
 
-;; (defn transitive?
-;;   "tests whether R is transitive"
-;; 
-;;   [R]
-;;
-;;   ;; hint: you might want to exploit the fact that R is transitive iff for every
-;;   ;;       pair (a, b) in R the image of b under R is a subset of the image
-;;   ;;       of a under R
-;;
-;;   ;; uses "every?", "subset?", "image-of", "second", "first"
-;; )
-;;
-;; 
-;; (test? "transitive 1" (transitive? #{[1 1] [1 2] [1 3] [2 2] [2 3] [3 3]}) true)
-;; 
-;; (test? "transitive 2" (transitive? #{[1 1] [1 2] [1 3] [2 2] [3 1] [3 3]}) false)
+(defn transitive?
+  "tests whether R is transitive"
+
+  [R]
+
+  (every?
+    #(subset? 
+      (image-of R (second %)) (image-of R (first %)))   ; for every (a,b) in R, checks if image if b under R is a subset of the image of a under R
+    R)
+
+  ;; hint: you might want to exploit the fact that R is transitive iff for every
+  ;;       pair (a, b) in R the image of b under R is a subset of the image
+  ;;       of a under R
+
+  ;; uses "every?", "subset?", "image-of", "second", "first"
+)
+
+
+(test? "transitive 1" (transitive? #{[1 1] [1 2] [1 3] [2 2] [2 3] [3 3]}) true)
+
+(test? "transitive 2" (transitive? #{[1 1] [1 2] [1 3] [2 2] [3 1] [3 3]}) false)
 
 
 (defn asymmetric?
@@ -301,19 +307,20 @@
 
 (declare surjective?)
 
-;; (defn surjective? 
-;;   "determines whether f is surjective on codomain B"
-;;   
-;;   [f B]
-;; 
-;;   ;; uses "rng"
-;; )
-;; 
-;; (test? "surjective 1" (surjective? #{[1 1] [2 2] [3 3]} #{1 2 3}) true) 
-;; 
-;; (test? "surjective 2" (surjective? #{[1 1] [2 2] [3 3]} #{1 2 3 4}) false)
-;; 
-;; (test? "surjective 3" (surjective? #{[1 1] [2 2] [3 1]} #{1 2 3}) false) 
+(defn surjective? 
+  "determines whether f is surjective on codomain B"
+  
+  [f B]
+
+  (= (rng f) B)     ; checks if the range of f is the same as B
+  ;; uses "rng"
+)
+
+(test? "surjective 1" (surjective? #{[1 1] [2 2] [3 3]} #{1 2 3}) true) 
+
+(test? "surjective 2" (surjective? #{[1 1] [2 2] [3 3]} #{1 2 3 4}) false)
+
+(test? "surjective 3" (surjective? #{[1 1] [2 2] [3 1]} #{1 2 3}) false) 
 
 
 (defn bijective? 
