@@ -65,83 +65,88 @@
 ;; PageRank
 ;;
 
-;; (def TinyWeb ... )
-;; define the relation in the figure of the instructions
-;;
-;; (test? "TinyWeb 1" (dom TinyWeb) #{0 1 2})
-;; (test? "TinyWeb 2" (rng TinyWeb) #{1 2 3})
-;; (test? "TinyWeb 3" (image-of TinyWeb 0) #{1 2})
+(def TinyWeb #{'(0, 1), '(0, 2), '(1, 2), '(2, 1), '(2, 3)})
+;define the relation in the figure of the instructions
+
+(test? "TinyWeb 1" (dom TinyWeb) #{0 1 2})
+(test? "TinyWeb 2" (rng TinyWeb) #{1 2 3})
+(test? "TinyWeb 3" (image-of TinyWeb 0) #{1 2})
 
 
 (def alpha 90/100)
 
 (declare all-pages)
 
-;; (defn all-pages
-;;   "computes set of all pages on the web"
-;;   
-;;   [web]
-;;   
-;;   ...
-;;   hint: check out the Clojure function "union"
-;; )
+(defn all-pages
+  "computes set of all pages on the web"
+  
+  [web]
+  
+  (union (dom web) (rng web))
+  ;hint: check out the Clojure function "union"
+)
 
-;; (test? "all-pages" (all-pages TinyWeb) #{0 1 2 3})
+(test? "all-pages" (all-pages TinyWeb) #{0 1 2 3})
 
 
 (declare no-links?)
 
-;; (defn no-links? 
-;;   "determines whether a page in a web has no outgoing links"
-;;   
-;;   [web page] 
-;;   
-;;   ...
-;; )
-;; 
-;; (test? "no-links? 1" (no-links? TinyWeb 0) false)
-;; (test? "no-links? 2" (no-links? TinyWeb 3) true)
+(defn no-links? 
+  "determines whether a page in a web has no outgoing links"
+  
+  [web page] 
+  (= #{} (image-of web page))
+)
+
+(test? "no-links? 1" (no-links? TinyWeb 0) false)
+(test? "no-links? 2" (no-links? TinyWeb 3) true)
 
 (declare random-page)
 
-;; (defn random-page 
-;;   "picks a random page occurring in a web"
-;; 
-;;   [web] 
-;;   
-;;   hint: Check out "rand-nth". Also, if you need to convert a set into a sequence, 
-;;         you want to take a look at "seq".
-;; )
-;;
-;; (test? "random-page" (number? (random-page TinyWeb)))
+(defn random-page 
+  "picks a random page occurring in a web"
+
+  [web] 
+  (rand-nth 
+    (seq 
+      (all-pages web)))
+ ; hint: Check out "rand-nth". Also, if you need to convert a set into a sequence, 
+ ;       you want to take a look at "seq".
+)
+
+ (test? "random-page" (number? (random-page TinyWeb)))
 
 (declare random-link)
 
-;; (defn random-link 
-;; 
-;;   "picks a random outgoing link from a page in a web,
-;;   returns the page the link points to"
-;;   
-;;   [web page] 
-;; 
-;;   hint: If you've done the previous one, this one should be easy.
-;; )
-;; 
+(defn random-link 
 
+  "picks a random outgoing link from a page in a web,
+  returns the page the link points to"
+  
+  [web page] 
+  (rand-nth 
+    (seq 
+      (image-of web page)))
+  ; hint: If you've done the previous one, this one should be easy.
+)
 
 (declare surf)
  
-;; (defn surf 
-;;   "simulates one step by a surfer,
-;;   with boredom probability 1-alpha,
-;;   returns the page the surfer goes to"
-;; 
-;;   [web current]
-;;
-;;   ...
-;;   hint: check out "rand"
-;; 
-;; )
+(defn surf 
+  "simulates one step by a surfer,
+  with boredom probability 1-alpha,
+  returns the page the surfer goes to"
+
+  [web current]
+  (if                               ;if  
+    (or 
+      (no-links? web current)       ; current page has no links
+      (< (rand) (- 1 alpha)))       ; or rand < (1-alpha)
+        (random-page web)           ; return a random page
+        (random-link web current))  ; else return random link on current page
+  
+  ; hint: check out "rand"
+)
 
 (defn random-surfer
   "simulates a random surfer for a number of steps, returns page visit stats"
