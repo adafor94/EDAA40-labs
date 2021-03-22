@@ -127,10 +127,10 @@
 
   [p b]
   (map 
-    #(assoc b % p)                  ; make the move, that is change the empty board square to p
+    #(assoc b % p)                  ; make the move, that is: change the empty board square to p
     (filter #(= _ (b %)) (range 9)) ; filter indexes where the corresponding board square is empty  
     )
-  
+
 ;  hint: uses map, assoc, filter, and range.
 ;        "assoc" is useful to "replace", in a vector such as the one representing the board,
 ;        one element with another. (assoc b n p) returns a vector that is like b, except that 
@@ -181,30 +181,36 @@
 )
 
 ;; If you have implemented "moves" and it passes the tests, try uncommenting these.
-;; 
-;; (def B0-GT (gametree X B0))
-;; 
-;; (def B1-GT (gametree X B1))
-;; 
-;; (def B2-GT (gametree X B2))
+
+(def B0-GT (gametree X B0))
+
+(def B1-GT (gametree X B1))
+
+(def B2-GT (gametree X B2))
 
 (declare gametree-count)
 
-;; (defn gametree-count
-;;   "counts the number of nodes in a game tree"
-;;   
-;;   [t]
-;;   
+(defn gametree-count
+  "counts the number of nodes in a game tree"
+  
+  [t]
+  (if (t :children)     ;if t has children
+    (inc                 ;and add one for this root t. 
+      (reduce +         ;add together values of childrens children
+        (map
+            gametree-count (t :children)  ;count all children
+    ))))
+
 ;;  hint: uses empty?, inc, reduce, +, map
 ;;        With "map" you recursively compute a list of node counts of all
 ;;        children. Check out "reduce" to see how this gets you to
 ;;        thier sum. Of course, "empty?" is needed to make sure you 
 ;;        don't do this if a node does not have children.
-;; )
-;; 
-;; (test? "gametree-count B0" (gametree-count B0-GT) 549946)
-;; (test? "gametree-count B1" (gametree-count B1-GT) 7064)
-;; (test? "gametree-count B2" (gametree-count B2-GT) 6812)
+)
+
+(test? "gametree-count B0" (gametree-count B0-GT) 549946)
+(test? "gametree-count B1" (gametree-count B1-GT) 7064)
+(test? "gametree-count B2" (gametree-count B2-GT) 6812)
 
 
 (defn reduce-gametree 
@@ -221,37 +227,43 @@
 
 ;; If all the tests pass up to here, try uncommenting this:
 ;;
-;; (def B0-RGT (reduce-gametree B0-GT))
-;; 
-;; (def B1-RGT (reduce-gametree B1-GT))
-;; 
-;; (def B2-RGT (reduce-gametree B2-GT))
-;; 
-;; 
-;; (test? "reduce-gametree count B0" (gametree-count B0-RGT) 12134)
-;; (test? "reduce-gametree count B1" (gametree-count B1-RGT) 1765)
-;; (test? "reduce-gametree count B2" (gametree-count B2-RGT) 206)
+(def B0-RGT (reduce-gametree B0-GT))
+
+(def B1-RGT (reduce-gametree B1-GT))
+
+(def B2-RGT (reduce-gametree B2-GT))
+
+
+(test? "reduce-gametree count B0" (gametree-count B0-RGT) 12134)
+(test? "reduce-gametree count B1" (gametree-count B1-RGT) 1765)
+(test? "reduce-gametree count B2" (gametree-count B2-RGT) 206)
 ;; 
 
 (declare gametree-height)
 
-;; (defn gametree-height
-;;   "computes the height of a game tree; a tree without children
-;;    has height 1, otherwise it has the maximal height of all its
-;;    children, plus 1"
-;;   
-;;   [t]
-;;
-;;  hint: uses empty?, inc, reduce, max, map
-;;        With "map" you recursively compute a list of the height of all
-;;        children. Check out "reduce" and "max" to see how this gets you to
-;;        the maximal height. Of course, "empty?" is needed to make sure you 
-;;        don't do this if a node does not have children.
-;; )
-;; 
-;; (test? "height B0-GT" (gametree-height B0-GT) 10)
-;; (test? "height B1-GT" (gametree-height B1-GT) 8)
-;; (test? "height B2-GT" (gametree-height B2-GT) 8)
+(defn gametree-height
+  "computes the height of a game tree; a tree without children
+   has height 1, otherwise it has the maximal height of all its
+   children, plus 1"
+  
+  [t]
+  (if (empty? (t :children))
+    1                                 ;if node has no children return 1
+    (inc                                            ;and increase by one
+      (reduce max                                   ;find max
+        (map gametree-height (t :children))))       ;calculate height of all children
+  )
+        
+;  hint: uses empty?, inc, reduce, max, map
+;        With "map" you recursively compute a list of the height of all
+;        children. Check out "reduce" and "max" to see how this gets you to
+;        the maximal height. Of course, "empty?" is needed to make sure you 
+;        don't do this if a node does not have children.
+)
+
+(test? "height B0-GT" (gametree-height B0-GT) 10)
+(test? "height B1-GT" (gametree-height B1-GT) 8)
+(test? "height B2-GT" (gametree-height B2-GT) 8)
 
 
 (defn choose-maxheight-gametrees
@@ -317,31 +329,34 @@
 )
 
 ;; If all the tests pass up to here, try uncommenting this:
-;;
-;; (def B0-OGT (optimal-gametree B0-GT))
-;; 
-;; (def B1-OGT (optimal-gametree B1-GT))
-;; 
-;; (def B2-OGT (optimal-gametree B2-GT))
-;; 
-;; 
-;; (test? "optimal-gametree count B0" (gametree-count B0-OGT) 12134)
-;; (test? "optimal-gametree count B1" (gametree-count B1-OGT) 123)
-;; (test? "optimal-gametree count B2" (gametree-count B2-OGT) 206)
+
+(def B0-OGT (optimal-gametree B0-GT))
+
+(def B1-OGT (optimal-gametree B1-GT))
+
+(def B2-OGT (optimal-gametree B2-GT))
+
+(test? "optimal-gametree count B0" (gametree-count B0-OGT) 12134)
+(test? "optimal-gametree count B1" (gametree-count B1-OGT) 123)
+(test? "optimal-gametree count B2" (gametree-count B2-OGT) 206)
 
 
 (declare rand-moves)
 
-;; (defn rand-moves 
-;;   "compute a sequence of moves from a game tree by randomly picking a child at each node,
-;;    returns a list of boards"
-;;    
-;;    [t]
-;;    
-;;  hint: uses cons, empty?, rand-nth
-;;        Returns a list where the first element is the board of the root node, followed by the
-;;        list of boards produced from a randomly chosen child, or '() if there are no children.
-;; )
+(defn rand-moves 
+  "compute a sequence of moves from a game tree by randomly picking a child at each node,
+   returns a list of boards"
+   
+  [t]
+  (if (empty? (t :children))
+    (list (t :board))
+    (cons (t :board) (rand-moves (rand-nth (t :children))))
+  )   
+)
+
+;  hint: uses cons, empty?, rand-nth
+;        Returns a list where the first element is the board of the root node, followed by the
+;        list of boards produced from a randomly chosen child, or '() if there are no children.
 ;; 
 
 ;; a small function to pretty-print a board, and one to print a list of boards,
@@ -384,12 +399,12 @@
 ;;
 ;; try this a few times:
 ;;
-;;   (print-boards (rand-moves B0-OGT))
-;;
-;;   (print-boards (rand-moves B1-OGT))
-;;
-;;   (print-boards (rand-moves B2-OGT))
-;;
+  (print-boards (rand-moves B0-OGT))
+
+  (print-boards (rand-moves B1-OGT))
+
+  (print-boards (rand-moves B2-OGT))
+
 
 
 
