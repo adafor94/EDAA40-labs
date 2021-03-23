@@ -71,20 +71,23 @@
 ;;
 
 
-;; (defn create-square-sum-relation
-;;     "given a set A of integers, produces a relation that includes tuple [a b],
-;;     iff a and b are in A and their sum is a square number"
-;; 
-;;     [A]
-;;
-;;     ;; this one should be easy 
-;;     ;; use square? to test whether a number is a square
-;;     
-;; )
-;; 
-;; (test? "create-square-sum-relation 1" (create-square-sum-relation #{3 6}) #{[3 6] [6 3]})
-;; (test? "create-square-sum-relation 2" (create-square-sum-relation #{3 7 19}) #{})
-;; (test? "create-square-sum-relation 3" (create-square-sum-relation (set (range 1 11))) #{[5 4] [2 2] [8 8] [4 5] [7 9] [1 3] [3 6] [6 10] [2 7] [1 8] [8 1] [7 2] [10 6] [6 3] [3 1] [9 7]})
+(defn create-square-sum-relation
+    "given a set A of integers, produces a relation that includes tuple [a b],
+    iff a and b are in A and their sum is a square number"
+
+    [A]
+    (set 
+      (for [a A b A 
+        :when (square? (+ a b))] 
+        [a b]))
+    ;; this one should be easy 
+    ;; use square? to test whether a number is a square
+    
+)
+
+(test? "create-square-sum-relation 1" (create-square-sum-relation #{3 6}) #{[3 6] [6 3]})
+(test? "create-square-sum-relation 2" (create-square-sum-relation #{3 7 19}) #{})
+(test? "create-square-sum-relation 3" (create-square-sum-relation (set (range 1 11))) #{[5 4] [2 2] [8 8] [4 5] [7 9] [1 3] [3 6] [6 10] [2 7] [1 8] [8 1] [7 2] [10 6] [6 3] [3 1] [9 7]})
  
 
 (defn square-sum-sequence
@@ -106,66 +109,70 @@
 ;; Part B: Hamiltonian path
 ;;
 
-;; (defn- H'
-;; 
-;;     "This is the helper function for computing the Hamiltonian path. 
-;;      E is the relation, i.e. the graph, we are looking for a path in.
-;;      a is the current node.
-;;      S is the set of nodes we haven't visited yet.
-;;      P is the path we have traveled so far.
-;;      
-;;      H' should return a Hamiltonian path through E
-;;      that begins with P, then goes through a, and then visits every vertex 
-;;      in the set S.
-;;      If no such path exists, it should return nil."
-;; 
-;;     [E a S P]
-;;     
-;;     { 
-;;     :pre [
-;;             (not (contains? S a))
-;;             (not (contains? (set P) a))
-;;             (empty? (intersection S (set P)))
-;;         ]
-;;     :post [
-;;             (or (empty? %) (= (set %) (union S (set P) #{a})))
-;;             (or (empty? %) (= (count %) (+ (count S) (count P) 1)))
-;;           ]
-;;     }
-;;
-;;
-;;
-;;     ;; CAUTION: make sure you write the body of the function HERE
-;;     ;;          after the :pre/:post condition map.
-;;
-;;     ;; in my implementation, I used concat, disj, intersection, some, empty? 
-;;     ;; and our old buddy image-of 
-;;     ;; (concat P [a]) will append a to the end of P
-;;
-;; )
+(defn- H'
+
+    "This is the helper function for computing the Hamiltonian path. 
+     E is the relation, i.e. the graph, we are looking for a path in.
+     a is the current node.
+     S is the set of nodes we haven't visited yet.
+     P is the path we have traveled so far.
+     
+     H' should return a Hamiltonian path through E
+     that begins with P, then goes through a, and then visits every vertex 
+     in the set S.
+     If no such path exists, it should return nil."
+
+    [E a S P]
+    
+    { 
+    :pre [
+            (not (contains? S a))
+            (not (contains? (set P) a))
+            (empty? (intersection S (set P)))
+        ]
+
+    :post [
+            (or (empty? %) (= (set %) (union S (set P) #{a})))
+            (or (empty? %) (= (count %) (+ (count S) (count P) 1)))
+          ]
+    }
+    (if (empty? S)          ;if S is empty -> done. Append current node and return
+      (concat P [a])
+      (let [possibleMoves (intersection S (image-of E a))]    ;Possible moves = image of a, that is all vertexes connected to a, AND unvisited nodes
+        (some #(H' E % (disj S %) (concat P [a])) possibleMoves)  ; try all possible moves until a correct path is found else return nill. (Removes % from unvisited and adds a to path P)
+      )       
+    )
+
+    ;; CAUTION: make sure you write the body of the function HERE
+    ;;          after the :pre/:post condition map.
+
+    ;; in my implementation, I used concat, disj, intersection, some, empty? 
+    ;; and our old buddy image-of 
+    ;; (concat P [a]) will append a to the end of P
+
+)
 
 (defn H
     "compute a Hamiltonian path in the graph (V, E); returns a list of the elements in V in the
     order of that path, or nil if no such path exists"
 
     [V E]
-
     (some #(H' E % (disj V %) '()) V)
 )
 
 
-;; (test? "square-sum-sequence 1" (count (square-sum-sequence 14)) 0)
-;; (test? "square-sum-sequence 2" (square-sum-sequence? (square-sum-sequence 15) 15))
-;; (test? "square-sum-sequence 3" (square-sum-sequence? (square-sum-sequence 16) 16))
-;; (test? "square-sum-sequence 4" (square-sum-sequence? (square-sum-sequence 17) 17))
-;; (test? "square-sum-sequence 5" (count (square-sum-sequence 18)) 0)
-;; (test? "square-sum-sequence 6" (count (square-sum-sequence 19)) 0)
-;; (test? "square-sum-sequence 7" (count (square-sum-sequence 22)) 0)
-;; (test? "square-sum-sequence 8" (square-sum-sequence? (square-sum-sequence 23) 23))
-;; (test? "square-sum-sequence 9" (count (square-sum-sequence 24)) 0)
-;; (test? "square-sum-sequence 10" (square-sum-sequence? (square-sum-sequence 25) 25))
-;; (test? "square-sum-sequence 11" (square-sum-sequence? (square-sum-sequence 26) 26))
-;; (test? "square-sum-sequence 12" (square-sum-sequence? (square-sum-sequence 27) 27))
+(test? "square-sum-sequence 1" (count (square-sum-sequence 14)) 0)
+(test? "square-sum-sequence 2" (square-sum-sequence? (square-sum-sequence 15) 15))
+(test? "square-sum-sequence 3" (square-sum-sequence? (square-sum-sequence 16) 16))
+(test? "square-sum-sequence 4" (square-sum-sequence? (square-sum-sequence 17) 17))
+(test? "square-sum-sequence 5" (count (square-sum-sequence 18)) 0)
+(test? "square-sum-sequence 6" (count (square-sum-sequence 19)) 0)
+(test? "square-sum-sequence 7" (count (square-sum-sequence 22)) 0)
+(test? "square-sum-sequence 8" (square-sum-sequence? (square-sum-sequence 23) 23))
+(test? "square-sum-sequence 9" (count (square-sum-sequence 24)) 0)
+(test? "square-sum-sequence 10" (square-sum-sequence? (square-sum-sequence 25) 25))
+(test? "square-sum-sequence 11" (square-sum-sequence? (square-sum-sequence 26) 26))
+(test? "square-sum-sequence 12" (square-sum-sequence? (square-sum-sequence 27) 27))
 
 
 ;;
@@ -200,32 +207,38 @@
     (vec (map + pos move))
 )
 
-;; (defn next-positions
-;;     "given a position pos and a board B, this computes the set of all positions on the board
-;;     after any of the moves in Moves"
+(defn next-positions
+    "given a position pos and a board B, this computes the set of all positions on the board
+    after any of the moves in Moves"
+
+    [pos B]
+    (intersection B             ;intersects all possible moves from a position with those inside the board B.
+      (set 
+      (map #(add-move pos %) Moves))
+    ;; I used map, set, intersection to write this
+    )
+)
 ;; 
-;;     [pos B]
-;;
-;;     ;; I used map, set, intersection to write this
-;;
-;; )
-;; 
-;; (test? "next-positions 1" (next-positions [0 0] (board 3 3)) #{[2 1] [1 2]})
-;; (test? "next-positions 2" (next-positions [1 1] (board 3 3)) #{})
-;; (test? "next-positions 3" (next-positions [2 3] (board 8 8)) #{[4 4] [1 1] [3 5] [0 2] [0 4] [1 5] [3 1] [4 2]})
+(test? "next-positions 1" (next-positions [0 0] (board 3 3)) #{[2 1] [1 2]})
+(test? "next-positions 2" (next-positions [1 1] (board 3 3)) #{})
+(test? "next-positions 3" (next-positions [2 3] (board 8 8)) #{[4 4] [1 1] [3 5] [0 2] [0 4] [1 5] [3 1] [4 2]})
 
 
-;; (defn create-knights-move-relation
-;; 
-;;     [B]
-;;
-;;     ;; if you got this far, this should be no big deal
-;; )
-;; 
-;; (test? "create-knights-move-relation 1" (create-knights-move-relation (board 2 3)) #{[[1 2] [0 0]] [[0 0] [1 2]] [[1 0] [0 2]] [[0 2] [1 0]]})
-;; (test? "create-knights-move-relation 2" (create-knights-move-relation (board 3 3)) #{[[0 0] [2 1]] [[0 1] [2 2]] [[2 2] [1 0]] [[1 2] [0 0]] [[0 0] [1 2]] [[2 1] [0 0]] [[2 2] [0 1]] [[1 0] [2 2]] [[2 0] [0 1]] [[2 1] [0 2]] [[2 0] [1 2]] [[1 0] [0 2]] [[1 2] [2 0]] [[0 1] [2 0]] [[0 2] [1 0]] [[0 2] [2 1]]})
-;; (test? "create-knights-move-relation 3" (create-knights-move-relation (board 2 2)) #{})
-;; (test? "create-knights-move-relation 4" #{} #{})
+(defn create-knights-move-relation
+
+    [B]
+    (set
+      (for [
+      pos B 
+      nextPos (next-positions pos B)] [pos nextPos])
+    )
+    ;; if you got this far, this should be no big deal
+)
+
+(test? "create-knights-move-relation 1" (create-knights-move-relation (board 2 3)) #{[[1 2] [0 0]] [[0 0] [1 2]] [[1 0] [0 2]] [[0 2] [1 0]]})
+(test? "create-knights-move-relation 2" (create-knights-move-relation (board 3 3)) #{[[0 0] [2 1]] [[0 1] [2 2]] [[2 2] [1 0]] [[1 2] [0 0]] [[0 0] [1 2]] [[2 1] [0 0]] [[2 2] [0 1]] [[1 0] [2 2]] [[2 0] [0 1]] [[2 1] [0 2]] [[2 0] [1 2]] [[1 0] [0 2]] [[1 2] [2 0]] [[0 1] [2 0]] [[0 2] [1 0]] [[0 2] [2 1]]})
+(test? "create-knights-move-relation 3" (create-knights-move-relation (board 2 2)) #{})
+(test? "create-knights-move-relation 4" #{} #{})
 
 
 (defn knights-tour
@@ -240,9 +253,9 @@
 )
 
 
-;; (test? "knights-tour 1" (knights-tour 3 3) nil)
-;; (test? "knights-tour 2" (knights-tour? (knights-tour 3 4) 3 4))
-;; (test? "knights-tour 3" (knights-tour? (knights-tour 4 5) 4 5))
+(test? "knights-tour 1" (knights-tour 3 3) nil)
+(test? "knights-tour 2" (knights-tour? (knights-tour 3 4) 3 4))
+(test? "knights-tour 3" (knights-tour? (knights-tour 4 5) 4 5))
 
 
 
