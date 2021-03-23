@@ -1,0 +1,6 @@
+.lein-failures
+.lein-repl-history
+.nrepl-port
+repl-port
+pom.properties
+leiningen.core.classpath.extract-native-dependencies
