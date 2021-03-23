@@ -230,7 +230,7 @@
     (set
       (for [
       pos B 
-      nextPos (next-positions pos B)] [pos nextPos])
+      nextPos (next-positions pos B)] [pos nextPos])    ;fmake a relation between every pos in b and every possible nextPos from pos
     )
     ;; if you got this far, this should be no big deal
 )

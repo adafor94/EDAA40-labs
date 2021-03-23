@@ -69,58 +69,67 @@
 
 (declare insert-into-queue)
 
-;; (defn insert-into-queue
-;;     "Inserts a tree T into the queue Q such that the entries in the queue are arranged in ascending order of frequency.
-;;      Q is a list of trees ordered by the value of their :frequency field."
-;;     [T Q]
-;;     
-;;     {
-;;         :pre [
-;;             (is-sorted-by? :frequency Q)
-;;         ]
-;;         :post [
-;;             (is-sorted-by? :frequency %)
-;;             (= (count %) (inc (count Q)))
-;;         ]
-;;     }
-;;     
-;;     ;; YOUR CODE HERE
-;; )
-;; 
-;; (test? "insert-into-queue 1" (insert-into-queue (last SimpleSequenceInitialQueue) (drop-last SimpleSequenceInitialQueue)) SimpleSequenceInitialQueue)
-;; (test? "insert-into-queue 2" (insert-into-queue TextBytesLeaf TextBytesQueueWithoutLeaf) TextBytesInitialQueue)
-;; 
+(defn insert-into-queue
+    "Inserts a tree T into the queue Q such that the entries in the queue are arranged in ascending order of frequency.
+     Q is a list of trees ordered by the value of their :frequency field."
+    [T Q]
+    
+    {
+        :pre [
+            (is-sorted-by? :frequency Q)
+        ]
+        :post [
+            (is-sorted-by? :frequency %)
+            (= (count %) (inc (count Q)))
+        ]
+    }
+
+    (sort-by #(% :frequency) (concat [T] Q))     ;Not very effective to just insert and re-sort but as mentioned thats not the point of this course. 
+    ;; YOUR CODE HERE
+)
+
+(test? "insert-into-queue 1" (insert-into-queue (last SimpleSequenceInitialQueue) (drop-last SimpleSequenceInitialQueue)) SimpleSequenceInitialQueue)
+(test? "insert-into-queue 2" (insert-into-queue TextBytesLeaf TextBytesQueueWithoutLeaf) TextBytesInitialQueue)
+
 
 (declare create-tree)
 
-;; (defn create-tree
-;;     "Recursively create a tree from a queue of trees ordered by frequency.
-;;      Q is a list of trees ordered by the value of their :frequency field.
-;;      The algorithm as as follows:
-;;       (a) If the queue is of length one, it's done. The tree is the one element in the queue.
-;;       (b) Otherwise, take the first two elements in the queue, and make a tree from them consisting of 
-;;           a branch node with the first element as its left and the second element as the right child. 
-;;           The :frequency field of the new tree is the sum of the frequencies of the two elements.
-;;       (c) Insert the newly created tree into the rest of the queue (without the first two elements) according
-;;           to its :frequency field (use insert-into-queue for this).
-;;       (d) Call create-tree on the queue resulting from (c)."
-;;       
-;;     [Q]
-;;     
-;;     {
-;;         :pre [
-;;             (is-sorted-by? :frequency Q)
-;;         ]
-;;     }
-;;     
-;;     ;; YOUR CODE HERE
-;;
-;;     ;; hint: you could use the function make-branch from edaa40.huffutil. Also take a look at first, second, and drop.
-;; )
-;; 
-;; (test? "create-tree 1" (create-tree ConstantSequenceInitialQueue) ConstantSequenceTree)
-;; (test? "create-tree 2" (create-tree SimpleSequenceInitialQueue) SimpleSequenceTree)
-;; (test? "create-tree 3" (:frequency (create-tree TextBytesInitialQueue)) 595248)
+(defn create-tree
+    "Recursively create a tree from a queue of trees ordered by frequency.
+     Q is a list of trees ordered by the value of their :frequency field.
+     The algorithm as as follows:
+      (a) If the queue is of length one, it's done. The tree is the one element in the queue.
+      (b) Otherwise, take the first two elements in the queue, and make a tree from them consisting of 
+          a branch node with the first element as its left and the second element as the right child. 
+          The :frequency field of the new tree is the sum of the frequencies of the two elements.
+      (c) Insert the newly created tree into the rest of the queue (without the first two elements) according
+          to its :frequency field (use insert-into-queue for this).
+      (d) Call create-tree on the queue resulting from (c)."
+      
+    [Q]
+    
+    {
+        :pre [
+            (is-sorted-by? :frequency Q)
+        ]
+    }
+    
+    (if (= (count Q) 1)
+      (first Q)                                         ; a
+      (let [
+        newTree (make-branch (first Q) (second Q))      ; b
+        newQ (insert-into-queue newTree (drop 2 Q))     ; c
+      ]
+        (create-tree newQ)                              ; d
+      )
+    )
+
+    ;; hint: you could use the function make-branch from edaa40.huffutil. Also take a look at first, second, and drop.
+)
+
+(test? "create-tree 1" (create-tree ConstantSequenceInitialQueue) ConstantSequenceTree)
+(test? "create-tree 2" (create-tree SimpleSequenceInitialQueue) SimpleSequenceTree)
+(test? "create-tree 3" (:frequency (create-tree TextBytesInitialQueue)) 595248)
 
 
 (declare huffman-tree)
