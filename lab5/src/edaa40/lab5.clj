@@ -134,25 +134,28 @@
 
 (declare huffman-tree)
 
-;; (defn huffman-tree
-;;     "Create a Huffman tree from a sequence of symbols.
-;;      The following steps have to be taken:
-;;       (a) Compute the frequencies of symbols in S.
-;;       (b) Create a list of leaf nodes for each symbol. Each leaf node includes the symbol's frequency.
-;;       (c) Sort that list in order of ascending frequency. This is the initial queue.
-;;       (d) Call create-tree on this sorted list of leaf nodes."
-;; 
-;;     [S]
-;;     
-;;     ;; YOUR CODE HERE
-;;
-;;     ;; hint: my solution uses frequencies, map, keys and from edaa40.huffutil the function make-leaf.
-;;     ;; hint two: take a look at the definition of TextBytesInitialQueue. 
-;;
-;; )
-;; 
-;; (test? "huffman-tree 1" (huffman-tree ConstantSequence) ConstantSequenceTree)
-;; (test? "huffman-tree 2" (huffman-tree SimpleSequence) SimpleSequenceTree)
+(defn huffman-tree
+    "Create a Huffman tree from a sequence of symbols.
+     The following steps have to be taken:
+      (a) Compute the frequencies of symbols in S.
+      (b) Create a list of leaf nodes for each symbol. Each leaf node includes the symbol's frequency.
+      (c) Sort that list in order of ascending frequency. This is the initial queue.
+      (d) Call create-tree on this sorted list of leaf nodes."
+
+    [S]
+    (let [frequencyMap (frequencies S)                                          ; a
+          listofLeafs (map #(make-leaf % (frequencyMap %)) (keys frequencyMap)) ; b
+          sortedList (sort-by #(% :frequency) listofLeafs)]                     ; c 
+        (create-tree sortedList)                                                ; d
+    )
+
+    ;; hint: my solution uses frequencies, map, keys and from edaa40.huffutil the function make-leaf.
+    ;; hint two: take a look at the definition of TextBytesInitialQueue. 
+
+)
+
+(test? "huffman-tree 1" (huffman-tree ConstantSequence) ConstantSequenceTree)
+(test? "huffman-tree 2" (huffman-tree SimpleSequence) SimpleSequenceTree)
 
 
 
@@ -163,27 +166,57 @@
 
 ;; you might need to define other functions used by "huffman-codes' in this place
 
+(defn hc'
+  "Help method to compute huffman codes from tree"
+  [T s]
+  (if (isleaf? T)
+    [[s (T :value)]]
+    (concat 
+      (hc' (T :left) (str s "0"))
+      (hc' (T :right) (str s "1"))
+    )  
+  )  
+)
+
 (declare huffman-codes)
 
-;; (defn huffman-codes
-;;     "Given a Huffman tree, compute the Huffman codes for each symbol in it. 
-;;     Returns a map mapping each symbol to a sequence of bits (0 or 1)." 
-;;     [T]
-;; 
-;; 
-;;      ;; YOUR CODE HERE
-;;      
-;;      ;; hint: for building the map, take a look at the function into --- my solutions both look like this:
-;;      ;;       (into {} ...)
-;;      ;; they also both involve defining other functions, for computing all symbols in the tree, for 
-;;      ;; finding the bit string for a symbol in the tree, or other things...
-;; )
-;; 
-;; 
-;; (test? "huffman-codes 1" (huffman-codes ConstantSequenceTree) ConstantSequenceCodes)
-;; (test? "huffman-codes 2" (huffman-codes SimpleSequenceTree) SimpleSequenceCodes)
+(defn huffman-codes
+    "Given a Huffman tree, compute the Huffman codes for each symbol in it. 
+    Returns a map mapping each symbol to a sequence of bits (0 or 1)." 
+    [T]
+    (let [listOfTuples (hc' T "")]
+      (into {} listOfTuples)
+      )
+     ;; hint: for building the map, take a look at the function into --- my solutions both look like this:
+     ;;       (into {} ...)
+     ;; they also both involve defining other functions, for computing all symbols in the tree, for 
+     ;; finding the bit string for a symbol in the tree, or other things...
+)
+
+ (test? "huffman-codes 1" (huffman-codes ConstantSequenceTree) ConstantSequenceCodes)
+ (test? "huffman-codes 2" (huffman-codes SimpleSequenceTree) SimpleSequenceCodes)
 
 
+(defn allSymbolsInTree 
+  "Given a Huffman tree, returns a set of all symbols in the tree"
+  [T]
+  (if (isleaf? T) 
+    #{(T :value)}
+    (set
+      (concat (allSymbolsInTree (T :left)) (allSymbolsInTree (T :right))))
+  )
+)
+
+; (defn findBitString
+;   "Given a Huffman tree and a symbol, returns the bit string to that symbol
+;    or nill if it's not in the tree"
+;    [T s]
+;    (if (isleaf? T)
+
+   
+;    )  
+  
+; )
 ;;
 ;;  Huffman encoding a byte sequence
 ;;
