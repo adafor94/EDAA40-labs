@@ -1,0 +1,5 @@
+./**/.lein-failures
+./**/.lein-repl-history
+./**/target/classes/META-INF/maven/edaa40/edaa40/pom.properties
+./**/target/repl-port
+./**/target/stale/leiningen.core.classpath.extract-native-dependencies
