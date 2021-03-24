@@ -170,10 +170,10 @@
   "Help method to compute huffman codes from tree"
   [T s]
   (if (isleaf? T)
-    [[s (T :value)]]
-    (concat 
-      (hc' (T :left) (str s "0"))
-      (hc' (T :right) (str s "1"))
+    [[(T :value) s]]    ;if T is a leaf return a list containing the tuple
+    (concat             ;else recursively go down each branch and concat the results.
+      (hc' (T :left) (concat s '(0) ))
+      (hc' (T :right) (concat s '(1)))
     )  
   )  
 )
@@ -184,8 +184,8 @@
     "Given a Huffman tree, compute the Huffman codes for each symbol in it. 
     Returns a map mapping each symbol to a sequence of bits (0 or 1)." 
     [T]
-    (let [listOfTuples (hc' T "")]
-      (into {} listOfTuples)
+    (let [listOfTuples (hc' T '())]       ;hc' returns a list of tuples on form (symbol, sequence of bits)
+      (into {} listOfTuples)              ;turn the list into a map.
       )
      ;; hint: for building the map, take a look at the function into --- my solutions both look like this:
      ;;       (into {} ...)
@@ -207,35 +207,32 @@
   )
 )
 
-; (defn findBitString
-;   "Given a Huffman tree and a symbol, returns the bit string to that symbol
-;    or nill if it's not in the tree"
-;    [T s]
-;    (if (isleaf? T)
-
-   
-;    )  
-  
-; )
 ;;
 ;;  Huffman encoding a byte sequence
 ;;
 
 (declare huffman-encode)
 
-;; (defn huffman-encode
-;;     "Produces the complete Huffman code for a sequence of bytes (0 to 255).
-;;     A Huffman code is represented as a map containing a Huffman tree, the length of the original sequence, and the sequence of bits encoding it."
-;;     [S]
-;;     
-;;     ;; YOUR CODE HERE
-;;
-;;     ;; hint: take a look at the function mapcat; I also used huffman-tree and huffman-codes
-;; )
-;; 
-;; (test? "huffman-encode 1" (huffman-encode ConstantSequence) ConstantSequenceHuffmanCode)
-;; (test? "huffman-encode 2" (huffman-encode SimpleSequence) SimpleSequenceHuffmanCode)
-;; (test? "huffman-encode 3" (count (:bits (huffman-encode TextBytes))) 2661055)
+(defn huffman-encode
+    "Produces the complete Huffman code for a sequence of bytes (0 to 255).
+    A Huffman code is represented as a map containing a Huffman tree, the length of the original sequence, and the sequence of bits encoding it."
+    [S]
+    ;(print S) 
+    (let [
+      tree (huffman-tree S)
+      length (count S)
+      symbolToBitstringMap (huffman-codes tree)
+      bits (mapcat #(symbolToBitstringMap %) S)
+    ]
+    {:tree tree :length length :bits bits}
+    )
+
+    ;; hint: take a look at the function mapcat; I also used huffman-tree and huffman-codes
+)
+
+(test? "huffman-encode 1" (huffman-encode ConstantSequence) ConstantSequenceHuffmanCode)
+(test? "huffman-encode 2" (huffman-encode SimpleSequence) SimpleSequenceHuffmanCode)
+(test? "huffman-encode 3" (count (:bits (huffman-encode TextBytes))) 2661055)
 
 ;;
 ;;  Huffman decoding a bit sequence
@@ -243,22 +240,27 @@
 
 (declare decode-symbol)
 
-;; (defn decode-symbol
-;;     "Uses the beginning of the provided bit sequence to decode the next symbol based on the tree T.
-;;     Returns a map with the decoded symbol in the :value field and the remaining bit sequence as :remaining-bits."
-;; 
-;;     [T bits]
-;;     
-;;     ;; YOUR CODE HERE
-;;
-;;     ;; hint: this is pretty straightforward recursive descent --- you might want to use isleaf? at some point
-;;
-;; )
-;; 
-;; (test? "decode-symbol 1" (decode-symbol SimpleSequenceTree SimpleSequenceBits) {:value :a :remaining-bits (drop 1 SimpleSequenceBits)}) 
-;; (test? "decode-symbol 2" (decode-symbol SimpleSequenceTree SimpleSequenceBits) {:value :a :remaining-bits (drop 1 SimpleSequenceBits)}) 
-;; (test? "decode-symbol 3" (decode-symbol SimpleSequenceTree (drop 3 SimpleSequenceBits)) {:value :b :remaining-bits (drop 5 SimpleSequenceBits)}) 
-;; (test? "decode-symbol 4" (decode-symbol SimpleSequenceTree (drop 7 SimpleSequenceBits)) {:value :c :remaining-bits (drop 10 SimpleSequenceBits)}) 
+(defn decode-symbol
+    "Uses the beginning of the provided bit sequence to decode the next symbol based on the tree T.
+    Returns a map with the decoded symbol in the :value field and the remaining bit sequence as :remaining-bits."
+
+    [T bits]
+    (if (isleaf? T)
+      {:value (T :value) :remaining-bits bits}
+      (if (= 0 (first bits))
+        (decode-symbol (T :left) (rest bits))
+        (decode-symbol (T :right) (rest bits)) 
+      )
+    )
+
+    ;; hint: this is pretty straightforward recursive descent --- you might want to use isleaf? at some point
+
+)
+
+(test? "decode-symbol 1" (decode-symbol SimpleSequenceTree SimpleSequenceBits) {:value :a :remaining-bits (drop 1 SimpleSequenceBits)}) 
+(test? "decode-symbol 2" (decode-symbol SimpleSequenceTree SimpleSequenceBits) {:value :a :remaining-bits (drop 1 SimpleSequenceBits)}) 
+(test? "decode-symbol 3" (decode-symbol SimpleSequenceTree (drop 3 SimpleSequenceBits)) {:value :b :remaining-bits (drop 5 SimpleSequenceBits)}) 
+(test? "decode-symbol 4" (decode-symbol SimpleSequenceTree (drop 7 SimpleSequenceBits)) {:value :c :remaining-bits (drop 10 SimpleSequenceBits)}) 
 
 
 (defn huffman-decode
@@ -286,11 +288,9 @@
 
 ;; when you are done with the previous tests...
 
-;; (test? "huffman-decode 1" (huffman-decode (huffman-encode ConstantSequence)) ConstantSequence)
-;; (test? "huffman-decode 2" (huffman-decode (huffman-encode SimpleSequence)) SimpleSequence)
-;; (test? "huffman-decode 3" (huffman-decode (huffman-encode TextBytes)) TextBytes)
-
-
+(test? "huffman-decode 1" (huffman-decode (huffman-encode ConstantSequence)) ConstantSequence)
+(test? "huffman-decode 2" (huffman-decode (huffman-encode SimpleSequence)) SimpleSequence)
+(test? "huffman-decode 3" (huffman-decode (huffman-encode TextBytes)) TextBytes)
 
 ;;
 ;; Huffman file compression and decompression
